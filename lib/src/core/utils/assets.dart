@@ -5,4 +5,5 @@ class Assets {
   static const String chatGpt = '$imagePath/ai.png';
   static const String userImage = '$imagePath/profile-user.png';
   static const String onBoardingImage = '$imagePath/on-boarding-frame.png';
+  static const String onSplashScreenLogo = '$imagePath/splash-screen-logo.png';
 }

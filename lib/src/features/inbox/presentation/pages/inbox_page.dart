@@ -1,11 +1,12 @@
-import 'package:chat_bot_flutter/src/core/theme/colors.dart';
 import 'package:chat_bot_flutter/src/core/utils/assets.dart';
-import 'package:chat_bot_flutter/src/core/widgets/primary_input_form_field.dart';
+import 'package:chat_bot_flutter/src/core/utils/loggers/logger.dart';
 import 'package:chat_bot_flutter/src/core/widgets/primary_snackbar.dart';
 import 'package:chat_bot_flutter/src/features/inbox/presentation/riverpods/messge_provider.dart';
 import 'package:chat_bot_flutter/src/features/inbox/presentation/widgets/message_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:speech_to_text/speech_recognition_result.dart';
+import 'package:speech_to_text/speech_to_text.dart';
 
 class InboxPage extends ConsumerStatefulWidget {
   const InboxPage({super.key});
@@ -15,6 +16,39 @@ class InboxPage extends ConsumerStatefulWidget {
 }
 
 class _InboxPageState extends ConsumerState<InboxPage> {
+  SpeechToText _speechToText = SpeechToText();
+  bool _speechEnabled = false;
+  String _lastWords = '';
+
+  void _initSpeech() async {
+    _speechEnabled = await _speechToText.initialize();
+    setState(() {});
+  }
+
+  /// Each time to start a speech recognition session
+  void _startListening() async {
+    await _speechToText.listen(onResult: _onSpeechResult);
+    setState(() {});
+  }
+
+  /// Manually stop the active speech recognition session
+  /// Note that there are also timeouts that each platform enforces
+  /// and the SpeechToText plugin supports setting timeouts on the
+  /// listen method.
+  void _stopListening() async {
+    await _speechToText.stop();
+    setState(() {});
+  }
+
+  /// This is the callback that the SpeechToText plugin calls when
+  /// the platform returns recognized words.
+  void _onSpeechResult(SpeechRecognitionResult result) {
+    setState(() {
+      _lastWords = result.recognizedWords;
+      Log.debug(_lastWords);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final notifier = ref.read(messageProvider.notifier);
@@ -29,6 +63,10 @@ class _InboxPageState extends ConsumerState<InboxPage> {
       if (next.status.isSuccess) {
         setState(() {});
       }
+    });
+
+    setState(() {
+      notifier.myQuery.text = _lastWords;
     });
 
     return Scaffold(
@@ -118,7 +156,8 @@ class _InboxPageState extends ConsumerState<InboxPage> {
                 ),
                 suffix: SizedBox(
                   width: MediaQuery.of(context).size.width * .1,
-                  child: notifier.myQuery.text.isNotEmpty
+                  child: notifier.myQuery.text.isNotEmpty &&
+                          _speechToText.isNotListening
                       ? IconButton(
                           onPressed: notifier.sendQuery,
                           icon: const Icon(
@@ -127,14 +166,29 @@ class _InboxPageState extends ConsumerState<InboxPage> {
                             size: 20,
                           ),
                         )
-                      : IconButton(
-                          onPressed: () {},
-                          icon: const Icon(
-                            Icons.mic_none_rounded,
-                            color: Colors.grey,
-                            size: 20,
-                          ),
-                        ),
+                      : _speechToText.isListening
+                          ? IconButton(
+                              onPressed: () {
+                                _stopListening();
+                              },
+                              icon: const Icon(
+                                Icons.mic_none_rounded,
+                                color: Colors.green,
+                                size: 20,
+                              ),
+                            )
+                          : IconButton(
+                              onPressed: () {
+                                _initSpeech();
+                                _startListening();
+                                Log.debug('start listening');
+                              },
+                              icon: const Icon(
+                                Icons.mic_none_rounded,
+                                color: Colors.grey,
+                                size: 20,
+                              ),
+                            ),
                 ),
               ),
             ),

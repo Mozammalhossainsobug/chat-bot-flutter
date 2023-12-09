@@ -9,7 +9,7 @@ class MessageNotifier extends Notifier<BaseState> {
   @override
   BaseState build() {
     openAI = OpenAI.instance.build(
-      token: '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',
+      token: '',
       baseOption: HttpSetup(),
       enableLog: true,
     );

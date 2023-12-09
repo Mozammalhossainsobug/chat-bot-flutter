@@ -1,6 +1,7 @@
 import 'package:chat_bot_flutter/src/core/services/routes/routes.dart';
 import 'package:chat_bot_flutter/src/features/inbox/presentation/pages/inbox_page.dart';
 import 'package:chat_bot_flutter/src/features/on_boarding/presentation/pages/on_boarding_page.dart';
+import 'package:chat_bot_flutter/src/features/splash_screen/presentation/splash_page.dart';
 import 'package:flutter/material.dart';
 
 class RouteGenerator {
@@ -18,10 +19,10 @@ class RouteGenerator {
           builder: (_) => const OnBoardingPage(),
         );
 
-      // case Routes.home:
-      //   return MaterialPageRoute(
-      //     builder: (_) => const HomePage(),
-      //   );
+      case Routes.splashScreen:
+        return MaterialPageRoute(
+          builder: (_) => const SplashScreenPage(),
+        );
       //
       // case Routes.forgotPassword:
       //   return MaterialPageRoute(
